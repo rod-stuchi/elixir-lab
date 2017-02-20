@@ -52,7 +52,8 @@ defmodule Renmovies do
                 -> IO.puts :do_rename
                 :do_rename
             {_, ["extract"], _}
-                -> IO.puts :do_extract
+                -> IO.puts :do_extract;
+                extract(false)
                 :do_extract
             {_, ["delete"], _}
                 -> IO.puts :do_delete
@@ -73,7 +74,7 @@ defmodule Renmovies do
       end
     end
 
-    dire = Path.wildcard(path) 
+    paths = Path.wildcard(path) 
             |> Enum.filter(fn f -> File.dir?(f) end)
             |> Enum.map(fn fl -> %{ 
                 basedir: Path.relative_to_cwd(fl), 
@@ -93,22 +94,13 @@ defmodule Renmovies do
     if (dry) do
         import IO.ANSI
         IO.puts format([
-            # :italic, 
-            # "Path:\t ", 
-            # color(8), File.cwd!, "\n", :not_italic,
             color(2), :bright,
             "\n dry-run, will extract files to base directory:\n\n",
-            Enum.map(dire, fn d -> [
+            Enum.map(paths, fn d -> [
                 color(7),
                 " " <> d.basedir, :italic, 
                 "\n   from: \n",
                 color(8), :normal, :not_italic,
-                # Enum.map(d.paths, fn x -> 
-                #     "     ┌─ " <> Path.relative_to(x.old, d.basedir) <> "\n" end) |> Enum.take(1),
-                # Enum.map(d.paths, fn x -> 
-                #     "     ├─ " <> Path.relative_to(x.old, d.basedir) <> "\n" end) |> Enum.drop(-1) |> Enum.drop(1), 
-                # Enum.map(d.paths, fn x -> 
-                #     "     └─ " <> Path.relative_to(x.old, d.basedir) <> "\n" end) |> Enum.take(-1),
                 Enum.map(d.paths, fn x -> 
                     "     │ " <> Path.relative_to(x.old, d.basedir) <> "\n" end), 
                 color(7), :italic,
@@ -119,8 +111,10 @@ defmodule Renmovies do
                 "\n",
             ] end)
         ], true)
+    else 
+        IO.puts "extract for real"
     end
-    # IO.inspect(dire, pretty: true)
-    # print dire, dry
+    # IO.inspect(paths, pretty: true)
+    # print paths, dry
   end
 end
