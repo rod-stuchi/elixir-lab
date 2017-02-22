@@ -89,8 +89,7 @@ defmodule Renmovies do
                     |> Enum.filter(fn f -> f.old != f.new end)
             } end)
             # |> Enum.drop(-2)
-            #|> Enum.map(fn x -> print x end)
-
+    
     if (dry) do
         import IO.ANSI
         IO.puts format([
@@ -106,8 +105,18 @@ defmodule Renmovies do
                 color(7), :italic,
                 "   to:\n",
                 color(7), :normal, :not_italic,
-                Enum.map(d.paths, fn x -> 
-                    "     ║ " <> Path.relative_to(x.new, d.basedir) <> "\n" end), 
+                Enum.map(d.paths, fn x -> "     ║ " <> Path.relative_to(x.new, d.basedir) <> "\n" end) 
+                    |> Enum.group_by(fn x -> x end) 
+                    |> Enum.map(fn {_, v} ->
+                        cond do
+                            Enum.count(v) > 1 -> 
+                                Enum.with_index(v, 1) 
+                                |> Enum.map(fn {q, w} -> 
+                                    String.replace(q, ~r/.([^.]+$)/, "#{String.pad_leading(Integer.to_string(w), 2, "0")}.\\1") end)
+                            Enum.count(v) <= 1 ->
+                                v
+                        end
+                    end),
                 "\n",
             ] end)
         ], true)
