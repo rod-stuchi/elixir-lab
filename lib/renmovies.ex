@@ -2,13 +2,11 @@
 #/disks/1TB/C_Driver/rods/Documents/LINQPad Queries/Rename-Movies.linq
 
 defmodule Renmovies do
+#    import Print
+
   def main(args \\[]) do
     #IO.puts "dire::" <> File.cwd! <> "\n\n"
-    parse_args(args)
-  end
-
-  def print(obj, num \\false) do
-    Apex.ap obj, numbers: num
+    IO.inspect parse_args(args)
   end
 
   def print_usage do
@@ -30,7 +28,6 @@ defmodule Renmovies do
   def parse_args(args) do
         # option = OptionParser.parse(System.argv, strict: [dry_run: :boolean])
         option = OptionParser.parse(args, strict: [dry_run: :boolean])
-        #IO.inspect(option, pretty: true)
 
         p = &(IO.puts/1)
 
@@ -39,24 +36,24 @@ defmodule Renmovies do
                 -> p.(print_usage())
                 :wrong
             {[dry_run: true], ["rename"], _}
-                -> IO.puts :dry_rename
+                -> #IO.puts :dry_rename
                 :dry_rename
             {[dry_run: true], ["extract"], _}
-                -> IO.puts :dry_extract;
+                -> #IO.puts :dry_extract;
                 extract(true)
                 :dry_extract
             {[dry_run: true], ["delete"], _}
-                -> IO.puts :dry_delete
+                -> #IO.puts :dry_delete
                 :dry_delete
             {_, ["rename"], _}
-                -> IO.puts :do_rename
+                -> #IO.puts :do_rename
                 :do_rename
             {_, ["extract"], _}
-                -> IO.puts :do_extract;
+                -> #IO.puts :do_extract;
                 extract(false)
                 :do_extract
             {_, ["delete"], _}
-                -> IO.puts :do_delete
+                -> #IO.puts :do_delete
                 :do_delete
             _
                 -> p.(print_usage())
@@ -65,109 +62,6 @@ defmodule Renmovies do
     end
 
   def extract(dry \\true) do
-    path = File.cwd! <> "/movies/*"
-
-    fsize = fn p ->
-      case File.stat p do
-        {:ok, %{size: sizee}} -> Sizeable.filesize(sizee)
-        {:error, reason} -> reason
-      end
-    end
-
-    paths = Path.wildcard(path)
-            |> Enum.filter(fn f -> File.dir?(f) end)
-            |> Enum.map(fn fl -> %{
-                basedir: Path.relative_to_cwd(fl),
-                paths: Path.wildcard(fl <> "/**")
-                    |> Enum.filter_map(
-                        fn fd -> not File.dir?(fd) end,
-                        fn sp -> %{
-                            # old: sp,
-                            # new: Path.join(fl, Path.basename(sp)),
-                            old: Path.relative_to_cwd(sp),
-                            new: Path.join(fl, Path.basename(sp)) |> Path.relative_to_cwd(),
-                            size: fsize.(sp)
-                    } end)
-                    |> Enum.filter(fn f -> f.old != f.new end)
-            } end)
-            |> Enum.drop(2)
-
-    print paths
-
-    # find files with same name to numerates they.
-    paths2 = paths |> Enum.map(fn x ->
-        x.paths
-        |> Enum.map(&(&1.new))
-        |> Enum.group_by(&(&1))
-        |> Enum.flat_map(fn {_, v} ->
-            cond do
-                Enum.count(v) > 1 ->
-                    Enum.with_index(v, 1)
-                    |> Enum.map(fn {q, index} ->
-                        %{
-                            oldName: q,
-                            newName: String.replace(q, ~r/.([^.]+$)/, "_#{String.pad_leading(Integer.to_string(index), 2, "0")}.\\1")
-                        }
-                    end)
-                Enum.count(v) <= 1 ->
-                    [%{ oldName: Enum.at(v, 0), newName: Enum.at(v, 0) }]
-            end
-        end)
-    end) |> Enum.flat_map(&(&1))
-    # print paths2
-
-    paths3 = paths |> Enum.map(fn x ->
-        x.paths
-        |> Enum.group_by(&(&1.new))
-    end) |> print
-
-
-
-    # List.flatten(Enum.map(paths, &(&1.paths)))
-    # |> Enum.map(fn pp ->
-    #     Map.update(pp, :new, "", fn n ->
-    #         # IO.inspect n
-    #         o = Enum.filter_map(paths2, &(&1.oldName == n), &(&1.newName))
-    #         IO.inspect o
-    #         n
-    #     end)
-    # end) |> print
-
-
-    if (dry) do
-        import IO.ANSI
-        IO.puts format([
-            color(2), :bright,
-            "\n dry-run, will extract files to base directory:\n\n",
-            Enum.map(paths, fn d -> [
-                color(7),
-                " " <> d.basedir, :italic,
-                "\n   from: \n",
-                color(8), :normal, :not_italic,
-                Enum.map(d.paths, fn x ->
-                    "     │ " <> Path.relative_to(x.old, d.basedir) <> "\n" end),
-                color(7), :italic,
-                "   to:\n",
-                color(7), :normal, :not_italic,
-                Enum.map(d.paths, fn x -> "     ║ " <> Path.relative_to(x.new, d.basedir) <> "\n" end)
-                    |> Enum.group_by(fn x -> x end)
-                    |> Enum.map(fn {_, v} ->
-                        cond do
-                            Enum.count(v) > 1 ->
-                                Enum.with_index(v, 1)
-                                |> Enum.map(fn {q, w} ->
-                                    String.replace(q, ~r/.([^.]+$)/, "#{String.pad_leading(Integer.to_string(w), 2, "0")}.\\1") end)
-                            Enum.count(v) <= 1 ->
-                                v
-                        end
-                    end),
-                "\n",
-            ] end)
-        ], true)
-    else
-        IO.puts "extract for real"
-    end
-    # IO.inspect(paths, pretty: true)
-    # print paths, dry
+    Extract.extract_files(dry)
   end
 end
