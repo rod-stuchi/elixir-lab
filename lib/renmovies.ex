@@ -6,8 +6,7 @@ defmodule Renmovies do
 
   def main(args \\[]) do
     # IO.inspect parse_args(args)
-
-    IO.inspect write_load_config()
+    IO.inspect Config.write_load_config()
   end
 
   def print_usage do
@@ -55,56 +54,6 @@ defmodule Renmovies do
             -> p.(print_usage())
             :show_print
     end
-  end
-
-  defp write_load_config() do
-    {:ok, path} = File.cwd
-    user_directory = Regex.named_captures(~r/(?<user>\/home\/\w+\/)/, path)["user"]
-    config_file = user_directory <> ".config/renmovies.json"
-
-    file = File.read(config_file)
-
-    case file do
-      { :ok, content } -> file_to_json(content)
-      { :error, _ } -> json_to_file(config_file) |> file_to_json()
-    end
-  end
-
-  defp json_to_file(config_file) do
-    config = Poison.encode!(%ConfigFile{
-      undo: "true", 
-      delete_size_st: "20mb",
-      rename_pattern: [%{
-        # TODO: just for tests, DESCONTOPOM WILL ROCK
-        regx: "(\\D+)(\\d+)(\\D+)", 
-        repl: "\\1 <-> \\3"
-      }]
-    }, pretty: true)
-
-    File.write(config_file, config, [:binary])
-    File.read!(config_file)
-  end
-
-  defp file_to_json(content) do
-    config = Poison.decode!(content, as: %ConfigFile{})
-        
-    patterns = config.rename_pattern 
-      |> Enum.filter_map(fn x -> 
-        regex = Regex.compile x["regx"]
-        case regex do
-          {:ok, r} -> true
-          {:error, e} ->
-            IO.puts "[#{x["regx"]}] is an invalid Regex"
-            false
-        end
-      end, fn x -> 
-        # IO.inspect x
-        regex = Regex.compile! x["regx"]
-        Map.update(x, "regx", ~r//, & &1 = regex)
-      end)
-      # |> IO.inspect
-
-    Map.update(config, :rename_pattern, %{}, & &1 = patterns)
   end
 
   def extract(dry \\true) do
