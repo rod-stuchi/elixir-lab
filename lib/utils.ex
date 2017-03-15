@@ -1,4 +1,4 @@
-defmodule Config do
+defmodule Utils do
   
   def write_load_config() do
     {:ok, path} = File.cwd
@@ -14,17 +14,16 @@ defmodule Config do
   end
 
   defp json_to_file(config_file) do
-    config = Poison.encode!(%ConfigFile{
+    config = Poison.encode!( %ConfigFile{
       undo_changes: "true", 
       extensions_keep: ["mov", "mp4", "avi", "mkv"],
       extensions_delete: ["txt", "rar", "7z", "zip"],
       rename_patterns: [%Patterns{
           input: "aaaaaaaa12341324124bbbbbbb",
-          output: "",
           regex: "(\\D+)(\\d+)(\\D+)", 
           replace: "\\1 <-> \\3"
         }]
-    }, pretty: true)
+      }, pretty: true)
 
     File.write(config_file, config, [:binary])
     File.read!(config_file)
@@ -52,5 +51,18 @@ defmodule Config do
       # |> IO.inspect
 
     Map.update(config, :rename_patterns, %{}, & &1 = patterns)
+  end
+
+  def hash_file(path) do
+    File.stream!(path, read_ahead: 100_000)
+      |> Stream.chunk(600)
+      |> Stream.take_every(30)
+      |> Stream.map(&hash(&1, :sha) <> "")
+      |> Enum.to_list()
+      |> hash(:sha256)
+  end
+
+  defp hash(data, protocol) do
+    :crypto.hash(protocol, data) |> Base.encode64
   end
 end

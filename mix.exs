@@ -35,6 +35,7 @@ defmodule Renmovies.Mixfile do
   defp deps do
     [
       {:apex, "~>1.0.0"},
+      {:flow, "~> 0.11.0"},
       {:poison, "~> 3.1"},
       {:sizeable, "~> 0.1.5"}
     ]

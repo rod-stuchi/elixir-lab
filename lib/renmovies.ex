@@ -4,9 +4,14 @@
 defmodule Renmovies do
     import Print
 
+  def hash(data, protocol) do
+    :crypto.hash(protocol, data) |> Base.encode64
+  end
+
   def main(args \\[]) do
     # IO.inspect parse_args(args)
-    IO.inspect Config.write_load_config()
+    IO.inspect Utils.write_load_config()
+    IO.inspect Utils.hash_file("/disks/1TB/qTorrent/MOVIE/Action/Doctor Strange (2016) [1080p] [YTS.AG]/Doctor.Strange.2016.1080p.BluRay.x264-[YTS.AG].mp4")
   end
 
   def print_usage do
