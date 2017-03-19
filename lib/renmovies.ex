@@ -9,9 +9,9 @@ defmodule Renmovies do
   end
 
   def main(args \\[]) do
-    # IO.inspect parse_args(args)
-    IO.inspect Utils.write_load_config()
-    IO.inspect Utils.hash_file("/disks/1TB/qTorrent/MOVIE/Action/Doctor Strange (2016) [1080p] [YTS.AG]/Doctor.Strange.2016.1080p.BluRay.x264-[YTS.AG].mp4")
+    IO.inspect parse_args(args)
+    # IO.inspect Utils.write_load_config()
+    # IO.inspect Utils.hash_file("/disks/1TB/qTorrent/MOVIE/Action/Inferno.2016.720p.BluRay.H264.AAC-RARBG/Inferno.2016.720p.BluRay.H264.AAC-RARBG.srt")
   end
 
   def print_usage do

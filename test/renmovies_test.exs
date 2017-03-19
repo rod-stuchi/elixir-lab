@@ -16,6 +16,6 @@ defmodule RenmoviesTest do
   # end  
 
   test "only in dev" do
-    Renmovies.main(["--dry-run", "delete"])
+    Renmovies.main(["--dry-run", "extract"])
   end
 end

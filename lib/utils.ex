@@ -14,12 +14,13 @@ defmodule Utils do
   end
 
   defp json_to_file(config_file) do
-    config = Poison.encode!( %ConfigFile{
+    config = Poison.encode!( %Model.Config{
       undo_changes: "true", 
       extensions_keep: ["mov", "mp4", "avi", "mkv"],
       extensions_delete: ["txt", "rar", "7z", "zip"],
-      rename_patterns: [%Patterns{
+      rename_patterns: [%Model.Patterns{
           input: "aaaaaaaa12341324124bbbbbbb",
+          output: "",
           regex: "(\\D+)(\\d+)(\\D+)", 
           replace: "\\1 <-> \\3"
         }]
@@ -30,11 +31,13 @@ defmodule Utils do
   end
 
   defp file_to_json(content) do
-    config = Poison.decode!(content, as: %ConfigFile{})
+    config = Poison.decode!(content, as: %Model.Config{
+      rename_patterns: [%Model.Patterns{}]
+    })
         
     patterns = config.rename_patterns 
       |> Enum.filter_map(fn x -> 
-        regex = Regex.compile x["regex"]
+        regex = Regex.compile x.regex
         case regex do
           {:ok, r} -> true
           {:error, e} ->
@@ -43,10 +46,10 @@ defmodule Utils do
         end
       end, fn x -> 
         # IO.inspect x
-        regex = Regex.compile! x["regex"]
-        out = Regex.replace(regex, x["input"], x["replace"])
-        x = Map.update(x, "output", "", & &1 = out) 
-        x = Map.update(x, "regex", ~r//, & &1 = regex)
+        regex = Regex.compile! x.regex
+        out = Regex.replace(regex, x.input, x.replace)
+        x = Map.update(x, :output, "", & &1 = out) 
+        x = Map.update(x, :regex, ~r//, & &1 = regex)
       end)
       # |> IO.inspect
 
@@ -54,12 +57,16 @@ defmodule Utils do
   end
 
   def hash_file(path) do
-    File.stream!(path, read_ahead: 100_000)
-      |> Stream.chunk(600)
-      |> Stream.take_every(30)
-      |> Stream.map(&hash(&1, :sha) <> "")
-      |> Enum.to_list()
-      |> hash(:sha256)
+    hashFile = System.cmd("sha1sum", [path])
+
+    case hashFile do
+      {hasha, 0} ->
+        [h1|_] = Regex.run(~r{[[:xdigit:]]+}, hasha)
+        {:ok, h1}
+
+      {_, 1} -> 
+        {:error, "Invalid path"}
+    end
   end
 
   defp hash(data, protocol) do
