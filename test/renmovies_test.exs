@@ -6,6 +6,7 @@ defmodule RenmoviesTest do
   #   assert Renmovies.main(["--dry-run", "extract"]) == :dry_extract
   #   assert Renmovies.main(["--dry-run", "rename"]) == :dry_rename
   #   assert Renmovies.main(["--dry-run", "delete"]) == :dry_delete
+  #   assert Renmovies.main(["--dry-run", "undo"]) == :dry_undo
   #   assert Renmovies.main(["extract"]) == :do_extract
   #   assert Renmovies.main(["rename"]) == :do_rename
   #   assert Renmovies.main(["delete"]) == :do_delete
@@ -16,6 +17,6 @@ defmodule RenmoviesTest do
   # end  
 
   test "only in dev" do
-    Renmovies.main(["--dry-run", "extract"])
+    Renmovies.main(["--dry-run", "undo"])
   end
 end
